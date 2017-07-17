@@ -10,6 +10,7 @@ package layers
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 
 	"github.com/google/gopacket"
@@ -194,6 +195,7 @@ var quicKeyPhase = map[byte]int{
 	typePublicReset:          -1,
 }
 
+// A QUIC packet header or QUIC special packet
 type QUIC struct {
 	BaseLayer
 
@@ -261,7 +263,7 @@ func (q *QUIC) DecodeFromBytes(data []byte, df gopacket.DecodeFeedback) error {
 	cidoffset := quicCIDOffset[q.PktType]
 	if cidoffset > 0 {
 		if len(data) < cidoffset+8 {
-			return fmt.Errorf("Truncated QUIC header decoding CID", q.PktType)
+			return errors.New("Truncated QUIC header decoding CID")
 		}
 		q.ConnID = binary.BigEndian.Uint64(data[cidoffset : cidoffset+8])
 		q.HasConnID = true
@@ -272,7 +274,7 @@ func (q *QUIC) DecodeFromBytes(data []byte, df gopacket.DecodeFeedback) error {
 	vnoffset := quicVNOffset[q.PktType]
 	if vnoffset > 0 {
 		if len(data) < vnoffset+4 {
-			return fmt.Errorf("Truncated QUIC header decoding version number", q.PktType)
+			return errors.New("Truncated QUIC header decoding version number")
 		}
 		q.Version = binary.BigEndian.Uint32(data[vnoffset : vnoffset+4])
 		q.HasVersion = true
@@ -283,7 +285,7 @@ func (q *QUIC) DecodeFromBytes(data []byte, df gopacket.DecodeFeedback) error {
 	pnoffset := quicPNOffset[q.PktType]
 	q.PktNumLen = quicPNLength[q.PktType]
 	if len(data) < pnoffset+q.PktNumLen {
-		return fmt.Errorf("Truncated QUIC header decoding PN", q.PktType)
+		return errors.New("Truncated QUIC header decoding PN")
 	}
 	switch q.PktNumLen {
 	case 1:
@@ -314,9 +316,7 @@ func (q *QUIC) NextLayerType() gopacket.LayerType {
 	return gopacket.LayerTypePayload
 }
 
-// NTP packets do not carry any data payload, so the empty byte slice is retured.
-// In Go, a nil slice is functionally identical to an empty slice, so we
-// return nil to avoid a heap allocation.
+// Payload returns the payload of the QUIC packet; currently, everything after the public header.
 func (q *QUIC) Payload() []byte {
 	return q.payload
 }
