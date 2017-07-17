@@ -15,6 +15,17 @@ import (
 	"github.com/google/gopacket"
 )
 
+//******************************************************************************
+//
+// QUIC Decoding Layer
+// ------------------------------------------
+// This file provides a GoPacket decoding layer for QUIC.
+// It follows the First Implementation Draft version of the protocol
+// as documented in draft-ietf-quic-protocol-04.
+//
+//******************************************************************************
+//
+
 const (
 	typeShortP0P1            = 0x01
 	typeShortP0P2            = 0x02
@@ -40,27 +51,27 @@ const (
 )
 
 var quicPayloadOffset = map[byte]int{
-	typeShortP0P1:            10,
-	typeShortP0P2:            11,
-	typeShortP0P4:            13,
-	typeShortP1P1:            10,
-	typeShortP1P2:            11,
-	typeShortP1P4:            13,
-	typeShortCidP0P1:         18,
-	typeShortCidP0P2:         19,
-	typeShortCidP0P4:         21,
-	typeShortCidP1P1:         18,
-	typeShortCidP1P2:         19,
-	typeShortCidP1P4:         21,
-	typeVersionNego:          25,
-	typeClientInitial:        25,
-	typeServerStatelessRetry: 25,
-	typeServerCleartext:      25,
-	typeClientCleartext:      25,
-	typeLongZeroRtt:          25,
-	typeLongPhaseZero:        25,
-	typeLongPhaseOne:         25,
-	typePublicReset:          25,
+	typeShortP0P1:            2,
+	typeShortP0P2:            3,
+	typeShortP0P4:            5,
+	typeShortP1P1:            2,
+	typeShortP1P2:            3,
+	typeShortP1P4:            5,
+	typeShortCidP0P1:         10,
+	typeShortCidP0P2:         11,
+	typeShortCidP0P4:         13,
+	typeShortCidP1P1:         10,
+	typeShortCidP1P2:         11,
+	typeShortCidP1P4:         13,
+	typeVersionNego:          17,
+	typeClientInitial:        17,
+	typeServerStatelessRetry: 17,
+	typeServerCleartext:      17,
+	typeClientCleartext:      17,
+	typeLongZeroRtt:          17,
+	typeLongPhaseZero:        17,
+	typeLongPhaseOne:         17,
+	typePublicReset:          17,
 }
 
 var quicCIDOffset = map[byte]int{
@@ -70,6 +81,54 @@ var quicCIDOffset = map[byte]int{
 	typeShortP1P1:            0,
 	typeShortP1P2:            0,
 	typeShortP1P4:            0,
+	typeShortCidP0P1:         1,
+	typeShortCidP0P2:         1,
+	typeShortCidP0P4:         1,
+	typeShortCidP1P1:         1,
+	typeShortCidP1P2:         1,
+	typeShortCidP1P4:         1,
+	typeVersionNego:          1,
+	typeClientInitial:        1,
+	typeServerStatelessRetry: 1,
+	typeServerCleartext:      1,
+	typeClientCleartext:      1,
+	typeLongZeroRtt:          1,
+	typeLongPhaseZero:        1,
+	typeLongPhaseOne:         1,
+	typePublicReset:          1,
+}
+
+var quicVNOffset = map[byte]int{
+	typeShortP0P1:            0,
+	typeShortP0P2:            0,
+	typeShortP0P4:            0,
+	typeShortP1P1:            0,
+	typeShortP1P2:            0,
+	typeShortP1P4:            0,
+	typeShortCidP0P1:         0,
+	typeShortCidP0P2:         0,
+	typeShortCidP0P4:         0,
+	typeShortCidP1P1:         0,
+	typeShortCidP1P2:         0,
+	typeShortCidP1P4:         0,
+	typeVersionNego:          13,
+	typeClientInitial:        13,
+	typeServerStatelessRetry: 13,
+	typeServerCleartext:      13,
+	typeClientCleartext:      13,
+	typeLongZeroRtt:          13,
+	typeLongPhaseZero:        13,
+	typeLongPhaseOne:         13,
+	typePublicReset:          13,
+}
+
+var quicPNOffset = map[byte]int{
+	typeShortP0P1:            1,
+	typeShortP0P2:            1,
+	typeShortP0P4:            1,
+	typeShortP1P1:            1,
+	typeShortP1P2:            1,
+	typeShortP1P4:            1,
 	typeShortCidP0P1:         9,
 	typeShortCidP0P2:         9,
 	typeShortCidP0P4:         9,
@@ -85,30 +144,6 @@ var quicCIDOffset = map[byte]int{
 	typeLongPhaseZero:        9,
 	typeLongPhaseOne:         9,
 	typePublicReset:          9,
-}
-
-var quicPNOffset = map[byte]int{
-	typeShortP0P1:            9,
-	typeShortP0P2:            9,
-	typeShortP0P4:            9,
-	typeShortP1P1:            9,
-	typeShortP1P2:            9,
-	typeShortP1P4:            9,
-	typeShortCidP0P1:         17,
-	typeShortCidP0P2:         17,
-	typeShortCidP0P4:         17,
-	typeShortCidP1P1:         17,
-	typeShortCidP1P2:         17,
-	typeShortCidP1P4:         17,
-	typeVersionNego:          17,
-	typeClientInitial:        17,
-	typeServerStatelessRetry: 17,
-	typeServerCleartext:      17,
-	typeClientCleartext:      17,
-	typeLongZeroRtt:          17,
-	typeLongPhaseZero:        17,
-	typeLongPhaseOne:         17,
-	typePublicReset:          17,
 }
 
 var quicPNLength = map[byte]int{
@@ -160,94 +195,128 @@ var quicKeyPhase = map[byte]int{
 }
 
 type QUIC struct {
-	UDP // a QUIC packet is a UDP packet; delegate for udp.go for UDP stuff
+	BaseLayer
 
-	ConnID       uint64
-	PktNum       uint32
-	PktNumLen    uint8
-	Version      uint32
-	KeyPhase     int
-	HasConnID    bool
-	IsLongHeader bool
+	PktType    byte   // packet type, not decoded
+	ConnID     uint64 // Connection ID
+	HasConnID  bool   // Connection ID is present
+	PktNum     uint32 // Packet Number
+	PktNumLen  int    // Length of packet number on wire
+	Version    uint32 // Version number for VN packets
+	HasVersion bool   // Version number is present
+	KeyPhase   int    // Key phase for short packets
 
-	qType byte
+	payload []byte
 }
 
-// LayerType returns gopacket.LayerTypeUDP
-func (q *QUIC) LayerType() gopacket.LayerType { return LayerTypeQUIC }
+// LayerType returns the layer type of the QUIC object, which is LayerTypeQUIC.
+func (q *QUIC) LayerType() gopacket.LayerType {
+	return LayerTypeQUIC
+}
 
+// decodeQUIC analyses a byte slice and attempts to decode it as an QUIC
+// packet (under a UDP packet)
+//
+// If it succeeds, it loads p with information about the packet and returns nil.
+// If it fails, it returns an error (non nil).
+//
+// This function is employed in layertypes.go to register the QUIC layer.
+func decodeQUIC(data []byte, p gopacket.PacketBuilder) error {
+	quic := &QUIC{}
+	err := quic.DecodeFromBytes(data, p)
+
+	if err != nil {
+		return err
+	}
+
+	p.AddLayer(quic)
+	p.SetApplicationLayer(quic)
+	return p.NextDecoder(quic.NextLayerType())
+}
+
+// DecodeFromBytes analyses a byte slice and attempts to decode it as an QUIC
+// packet.
+//
+// If it succeeds, it loads the NTP object with information about the packet
+// and returns nil.
+// If not, it returns an error (non nil).
 func (q *QUIC) DecodeFromBytes(data []byte, df gopacket.DecodeFeedback) error {
 
-	// get UDP header first
-	q.SrcPort = UDPPort(binary.BigEndian.Uint16(data[0:2]))
-	q.sPort = data[0:2]
-	q.DstPort = UDPPort(binary.BigEndian.Uint16(data[2:4]))
-	q.dPort = data[2:4]
-	q.Length = binary.BigEndian.Uint16(data[4:6])
-	q.Checksum = binary.BigEndian.Uint16(data[6:8])
-
-	// check for stunted packet or jumbogram
-	if q.Length == 0 {
-		return fmt.Errorf("QUIC jumbograms not supported")
+	// min quic header size is 2
+	if len(data) < 2 {
+		return fmt.Errorf("QUIC packet too small: %d bytes", len(data))
 	}
 
-	if q.Length < 10 {
-		return fmt.Errorf("QUIC packet too small: %d bytes", q.Length)
-	}
+	// switch on header type
+	q.PktType = data[0]
 
-	// find payload offset
-	offset, ok := quicPayloadOffset[q.qType]
+	// find payload offset and snarf payload
+	payoff, ok := quicPayloadOffset[q.PktType]
 	if !ok {
-		return fmt.Errorf("Unknown QUIC packet type %d", q.qType)
+		return fmt.Errorf("Unknown QUIC packet type %d", q.PktType)
 	}
-
-	// check for truncation
-	hlen := int(q.Length)
-	if hlen < offset {
-		return fmt.Errorf("Incomplete QUIC header: %d of %d bytes for type %d", q.Length, offset, q.qType)
-	}
-
-	if hlen > len(data) {
-		df.SetTruncated()
-		hlen = len(data)
-	}
+	q.payload = data[payoff:]
 
 	// unpack quic header
-	cidoffset := quicCIDOffset[q.qType]
+	cidoffset := quicCIDOffset[q.PktType]
 	if cidoffset > 0 {
+		if len(data) < cidoffset+8 {
+			return fmt.Errorf("Truncated QUIC header decoding CID", q.PktType)
+		}
 		q.ConnID = binary.BigEndian.Uint64(data[cidoffset : cidoffset+8])
 		q.HasConnID = true
 	} else {
 		q.HasConnID = false
 	}
 
-	pnoffset := quicPNOffset[q.qType]
-	switch quicPNLength[q.qType] {
-	case 1:
-		q.PktNum = uint32(data[pnoffset])
-		q.PktNumLen = 1
-	case 2:
-		q.PktNum = uint32(binary.BigEndian.Uint16(data[pnoffset : pnoffset+2]))
-		q.PktNumLen = 2
-	case 4:
-		q.PktNum = binary.BigEndian.Uint32(data[pnoffset : pnoffset+2])
-		q.PktNumLen = 4
+	vnoffset := quicVNOffset[q.PktType]
+	if vnoffset > 0 {
+		if len(data) < vnoffset+4 {
+			return fmt.Errorf("Truncated QUIC header decoding version number", q.PktType)
+		}
+		q.Version = binary.BigEndian.Uint32(data[vnoffset : vnoffset+4])
+		q.HasVersion = true
+	} else {
+		q.HasVersion = false
 	}
 
-	q.KeyPhase = quicKeyPhase[q.qType]
-	q.IsLongHeader = q.qType >= 0x80
+	pnoffset := quicPNOffset[q.PktType]
+	q.PktNumLen = quicPNLength[q.PktType]
+	if len(data) < pnoffset+q.PktNumLen {
+		return fmt.Errorf("Truncated QUIC header decoding PN", q.PktType)
+	}
+	switch q.PktNumLen {
+	case 1:
+		q.PktNum = uint32(data[pnoffset])
+	case 2:
+		q.PktNum = uint32(binary.BigEndian.Uint16(data[pnoffset : pnoffset+2]))
+	case 4:
+		q.PktNum = binary.BigEndian.Uint32(data[pnoffset : pnoffset+4])
+	}
+
+	q.KeyPhase = quicKeyPhase[q.PktType]
+
+	// FIXME fully decode special long packets?
 
 	return nil
 }
 
-//
-func decodeQUIC(data []byte, p gopacket.PacketBuilder) error {
-	quic := &QUIC{}
-	err := quic.DecodeFromBytes(data, p)
-	p.AddLayer(quic)
-	p.SetTransportLayer(quic)
-	if err != nil {
-		return err
-	}
-	return p.NextDecoder(quic.NextLayerType())
+// CanDecode returns a set of layers that QUIC objects can decode.
+// This is always just LayerTypeQUIC.
+func (q *QUIC) CanDecode() gopacket.LayerClass {
+	return LayerTypeQUIC
+}
+
+// NextLayerType specifies the next layer type; for QUIC, this is always just
+// payload (LayerTypePayload), since the header contains no information for
+// differentiation.
+func (q *QUIC) NextLayerType() gopacket.LayerType {
+	return gopacket.LayerTypePayload
+}
+
+// NTP packets do not carry any data payload, so the empty byte slice is retured.
+// In Go, a nil slice is functionally identical to an empty slice, so we
+// return nil to avoid a heap allocation.
+func (q *QUIC) Payload() []byte {
+	return q.payload
 }
