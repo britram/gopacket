@@ -294,6 +294,8 @@ func (q *QUIC) DecodeFromBytes(data []byte, df gopacket.DecodeFeedback) error {
 		q.PktNum = uint32(binary.BigEndian.Uint16(data[pnoffset : pnoffset+2]))
 	case 4:
 		q.PktNum = binary.BigEndian.Uint32(data[pnoffset : pnoffset+4])
+	default:
+		panic("invariant failed in decoder: illegal packet number length")
 	}
 
 	q.KeyPhase = quicKeyPhase[q.PktType]
@@ -319,4 +321,30 @@ func (q *QUIC) NextLayerType() gopacket.LayerType {
 // Payload returns the payload of the QUIC packet; currently, everything after the public header.
 func (q *QUIC) Payload() []byte {
 	return q.payload
+}
+
+// Given a last packet number, decode this packet's encoded packet number as a full packet number
+func (q *QUIC) FullPacketNumber(last uint64) uint64 {
+	switch q.PktNumLen {
+	case 1:
+		if uint32(last&0xff) > q.PktNum {
+			return ((last & 0xffffffffffffff00) + 0x100) | uint64(q.PktNum)
+		} else {
+			return (last & 0xffffffffffffff00) | uint64(q.PktNum)
+		}
+	case 2:
+		if uint32(last&0xffff) > q.PktNum {
+			return ((last & 0xffffffffffff0000) + 0x10000) | uint64(q.PktNum)
+		} else {
+			return (last & 0xffffffffffff0000) | uint64(q.PktNum)
+		}
+	case 4:
+		if uint32(last&0xffffffff) > q.PktNum {
+			return ((last & 0xffffffff00000000) + 0x100000000) | uint64(q.PktNum)
+		} else {
+			return (last & 0xffffffff00000000) | uint64(q.PktNum)
+		}
+	default:
+		panic("invariant failed in decoder: illegal packet number length")
+	}
 }
