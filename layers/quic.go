@@ -28,171 +28,171 @@ import (
 //
 
 const (
-	typeShortP0P1            = 0x01
-	typeShortP0P2            = 0x02
-	typeShortP0P4            = 0x03
-	typeShortP1P1            = 0x21
-	typeShortP1P2            = 0x22
-	typeShortP1P4            = 0x23
-	typeShortCidP0P1         = 0x41
-	typeShortCidP0P2         = 0x42
-	typeShortCidP0P4         = 0x43
-	typeShortCidP1P1         = 0x61
-	typeShortCidP1P2         = 0x62
-	typeShortCidP1P4         = 0x63
-	typeVersionNego          = 0x81
-	typeClientInitial        = 0x82
-	typeServerStatelessRetry = 0x83
-	typeServerCleartext      = 0x84
-	typeClientCleartext      = 0x85
-	typeLongZeroRtt          = 0x86
-	typeLongPhaseZero        = 0x87
-	typeLongPhaseOne         = 0x88
-	typePublicReset          = 0x89
+	QUICPktTypeShortP0P1            = 0x01
+	QUICPktTypeShortP0P2            = 0x02
+	QUICPktTypeShortP0P4            = 0x03
+	QUICPktTypeShortP1P1            = 0x21
+	QUICPktTypeShortP1P2            = 0x22
+	QUICPktTypeShortP1P4            = 0x23
+	QUICPktTypeShortCidP0P1         = 0x41
+	QUICPktTypeShortCidP0P2         = 0x42
+	QUICPktTypeShortCidP0P4         = 0x43
+	QUICPktTypeShortCidP1P1         = 0x61
+	QUICPktTypeShortCidP1P2         = 0x62
+	QUICPktTypeShortCidP1P4         = 0x63
+	QUICPktTypeVersionNego          = 0x81
+	QUICPktTypeClientInitial        = 0x82
+	QUICPktTypeServerStatelessRetry = 0x83
+	QUICPktTypeServerCleartext      = 0x84
+	QUICPktTypeClientCleartext      = 0x85
+	QUICPktTypeLongZeroRtt          = 0x86
+	QUICPktTypeLongPhaseZero        = 0x87
+	QUICPktTypeLongPhaseOne         = 0x88
+	QUICPktTypeStatelessReset       = 0x89
 )
 
 var quicPayloadOffset = map[byte]int{
-	typeShortP0P1:            2,
-	typeShortP0P2:            3,
-	typeShortP0P4:            5,
-	typeShortP1P1:            2,
-	typeShortP1P2:            3,
-	typeShortP1P4:            5,
-	typeShortCidP0P1:         10,
-	typeShortCidP0P2:         11,
-	typeShortCidP0P4:         13,
-	typeShortCidP1P1:         10,
-	typeShortCidP1P2:         11,
-	typeShortCidP1P4:         13,
-	typeVersionNego:          17,
-	typeClientInitial:        17,
-	typeServerStatelessRetry: 17,
-	typeServerCleartext:      17,
-	typeClientCleartext:      17,
-	typeLongZeroRtt:          17,
-	typeLongPhaseZero:        17,
-	typeLongPhaseOne:         17,
-	typePublicReset:          17,
+	QUICPktTypeShortP0P1:            2,
+	QUICPktTypeShortP0P2:            3,
+	QUICPktTypeShortP0P4:            5,
+	QUICPktTypeShortP1P1:            2,
+	QUICPktTypeShortP1P2:            3,
+	QUICPktTypeShortP1P4:            5,
+	QUICPktTypeShortCidP0P1:         10,
+	QUICPktTypeShortCidP0P2:         11,
+	QUICPktTypeShortCidP0P4:         13,
+	QUICPktTypeShortCidP1P1:         10,
+	QUICPktTypeShortCidP1P2:         11,
+	QUICPktTypeShortCidP1P4:         13,
+	QUICPktTypeVersionNego:          17,
+	QUICPktTypeClientInitial:        17,
+	QUICPktTypeServerStatelessRetry: 17,
+	QUICPktTypeServerCleartext:      17,
+	QUICPktTypeClientCleartext:      17,
+	QUICPktTypeLongZeroRtt:          17,
+	QUICPktTypeLongPhaseZero:        17,
+	QUICPktTypeLongPhaseOne:         17,
+	QUICPktTypeStatelessReset:       17,
 }
 
 var quicCIDOffset = map[byte]int{
-	typeShortP0P1:            0,
-	typeShortP0P2:            0,
-	typeShortP0P4:            0,
-	typeShortP1P1:            0,
-	typeShortP1P2:            0,
-	typeShortP1P4:            0,
-	typeShortCidP0P1:         1,
-	typeShortCidP0P2:         1,
-	typeShortCidP0P4:         1,
-	typeShortCidP1P1:         1,
-	typeShortCidP1P2:         1,
-	typeShortCidP1P4:         1,
-	typeVersionNego:          1,
-	typeClientInitial:        1,
-	typeServerStatelessRetry: 1,
-	typeServerCleartext:      1,
-	typeClientCleartext:      1,
-	typeLongZeroRtt:          1,
-	typeLongPhaseZero:        1,
-	typeLongPhaseOne:         1,
-	typePublicReset:          1,
+	QUICPktTypeShortP0P1:            0,
+	QUICPktTypeShortP0P2:            0,
+	QUICPktTypeShortP0P4:            0,
+	QUICPktTypeShortP1P1:            0,
+	QUICPktTypeShortP1P2:            0,
+	QUICPktTypeShortP1P4:            0,
+	QUICPktTypeShortCidP0P1:         1,
+	QUICPktTypeShortCidP0P2:         1,
+	QUICPktTypeShortCidP0P4:         1,
+	QUICPktTypeShortCidP1P1:         1,
+	QUICPktTypeShortCidP1P2:         1,
+	QUICPktTypeShortCidP1P4:         1,
+	QUICPktTypeVersionNego:          1,
+	QUICPktTypeClientInitial:        1,
+	QUICPktTypeServerStatelessRetry: 1,
+	QUICPktTypeServerCleartext:      1,
+	QUICPktTypeClientCleartext:      1,
+	QUICPktTypeLongZeroRtt:          1,
+	QUICPktTypeLongPhaseZero:        1,
+	QUICPktTypeLongPhaseOne:         1,
+	QUICPktTypeStatelessReset:       1,
 }
 
 var quicVNOffset = map[byte]int{
-	typeShortP0P1:            0,
-	typeShortP0P2:            0,
-	typeShortP0P4:            0,
-	typeShortP1P1:            0,
-	typeShortP1P2:            0,
-	typeShortP1P4:            0,
-	typeShortCidP0P1:         0,
-	typeShortCidP0P2:         0,
-	typeShortCidP0P4:         0,
-	typeShortCidP1P1:         0,
-	typeShortCidP1P2:         0,
-	typeShortCidP1P4:         0,
-	typeVersionNego:          13,
-	typeClientInitial:        13,
-	typeServerStatelessRetry: 13,
-	typeServerCleartext:      13,
-	typeClientCleartext:      13,
-	typeLongZeroRtt:          13,
-	typeLongPhaseZero:        13,
-	typeLongPhaseOne:         13,
-	typePublicReset:          13,
+	QUICPktTypeShortP0P1:            0,
+	QUICPktTypeShortP0P2:            0,
+	QUICPktTypeShortP0P4:            0,
+	QUICPktTypeShortP1P1:            0,
+	QUICPktTypeShortP1P2:            0,
+	QUICPktTypeShortP1P4:            0,
+	QUICPktTypeShortCidP0P1:         0,
+	QUICPktTypeShortCidP0P2:         0,
+	QUICPktTypeShortCidP0P4:         0,
+	QUICPktTypeShortCidP1P1:         0,
+	QUICPktTypeShortCidP1P2:         0,
+	QUICPktTypeShortCidP1P4:         0,
+	QUICPktTypeVersionNego:          13,
+	QUICPktTypeClientInitial:        13,
+	QUICPktTypeServerStatelessRetry: 13,
+	QUICPktTypeServerCleartext:      13,
+	QUICPktTypeClientCleartext:      13,
+	QUICPktTypeLongZeroRtt:          13,
+	QUICPktTypeLongPhaseZero:        13,
+	QUICPktTypeLongPhaseOne:         13,
+	QUICPktTypeStatelessReset:       13,
 }
 
 var quicPNOffset = map[byte]int{
-	typeShortP0P1:            1,
-	typeShortP0P2:            1,
-	typeShortP0P4:            1,
-	typeShortP1P1:            1,
-	typeShortP1P2:            1,
-	typeShortP1P4:            1,
-	typeShortCidP0P1:         9,
-	typeShortCidP0P2:         9,
-	typeShortCidP0P4:         9,
-	typeShortCidP1P1:         9,
-	typeShortCidP1P2:         9,
-	typeShortCidP1P4:         9,
-	typeVersionNego:          9,
-	typeClientInitial:        9,
-	typeServerStatelessRetry: 9,
-	typeServerCleartext:      9,
-	typeClientCleartext:      9,
-	typeLongZeroRtt:          9,
-	typeLongPhaseZero:        9,
-	typeLongPhaseOne:         9,
-	typePublicReset:          9,
+	QUICPktTypeShortP0P1:            1,
+	QUICPktTypeShortP0P2:            1,
+	QUICPktTypeShortP0P4:            1,
+	QUICPktTypeShortP1P1:            1,
+	QUICPktTypeShortP1P2:            1,
+	QUICPktTypeShortP1P4:            1,
+	QUICPktTypeShortCidP0P1:         9,
+	QUICPktTypeShortCidP0P2:         9,
+	QUICPktTypeShortCidP0P4:         9,
+	QUICPktTypeShortCidP1P1:         9,
+	QUICPktTypeShortCidP1P2:         9,
+	QUICPktTypeShortCidP1P4:         9,
+	QUICPktTypeVersionNego:          9,
+	QUICPktTypeClientInitial:        9,
+	QUICPktTypeServerStatelessRetry: 9,
+	QUICPktTypeServerCleartext:      9,
+	QUICPktTypeClientCleartext:      9,
+	QUICPktTypeLongZeroRtt:          9,
+	QUICPktTypeLongPhaseZero:        9,
+	QUICPktTypeLongPhaseOne:         9,
+	QUICPktTypeStatelessReset:       9,
 }
 
 var quicPNLength = map[byte]int{
-	typeShortP0P1:            1,
-	typeShortP0P2:            2,
-	typeShortP0P4:            4,
-	typeShortP1P1:            1,
-	typeShortP1P2:            2,
-	typeShortP1P4:            4,
-	typeShortCidP0P1:         1,
-	typeShortCidP0P2:         2,
-	typeShortCidP0P4:         4,
-	typeShortCidP1P1:         1,
-	typeShortCidP1P2:         2,
-	typeShortCidP1P4:         4,
-	typeVersionNego:          4,
-	typeClientInitial:        4,
-	typeServerStatelessRetry: 4,
-	typeServerCleartext:      4,
-	typeClientCleartext:      4,
-	typeLongZeroRtt:          4,
-	typeLongPhaseZero:        4,
-	typeLongPhaseOne:         4,
-	typePublicReset:          4,
+	QUICPktTypeShortP0P1:            1,
+	QUICPktTypeShortP0P2:            2,
+	QUICPktTypeShortP0P4:            4,
+	QUICPktTypeShortP1P1:            1,
+	QUICPktTypeShortP1P2:            2,
+	QUICPktTypeShortP1P4:            4,
+	QUICPktTypeShortCidP0P1:         1,
+	QUICPktTypeShortCidP0P2:         2,
+	QUICPktTypeShortCidP0P4:         4,
+	QUICPktTypeShortCidP1P1:         1,
+	QUICPktTypeShortCidP1P2:         2,
+	QUICPktTypeShortCidP1P4:         4,
+	QUICPktTypeVersionNego:          4,
+	QUICPktTypeClientInitial:        4,
+	QUICPktTypeServerStatelessRetry: 4,
+	QUICPktTypeServerCleartext:      4,
+	QUICPktTypeClientCleartext:      4,
+	QUICPktTypeLongZeroRtt:          4,
+	QUICPktTypeLongPhaseZero:        4,
+	QUICPktTypeLongPhaseOne:         4,
+	QUICPktTypeStatelessReset:       4,
 }
 
 var quicKeyPhase = map[byte]int{
-	typeShortP0P1:            0,
-	typeShortP0P2:            0,
-	typeShortP0P4:            0,
-	typeShortP1P1:            1,
-	typeShortP1P2:            1,
-	typeShortP1P4:            1,
-	typeShortCidP0P1:         0,
-	typeShortCidP0P2:         0,
-	typeShortCidP0P4:         0,
-	typeShortCidP1P1:         1,
-	typeShortCidP1P2:         1,
-	typeShortCidP1P4:         1,
-	typeVersionNego:          -1,
-	typeClientInitial:        -1,
-	typeServerStatelessRetry: -1,
-	typeServerCleartext:      -1,
-	typeClientCleartext:      -1,
-	typeLongZeroRtt:          -1,
-	typeLongPhaseZero:        0,
-	typeLongPhaseOne:         1,
-	typePublicReset:          -1,
+	QUICPktTypeShortP0P1:            0,
+	QUICPktTypeShortP0P2:            0,
+	QUICPktTypeShortP0P4:            0,
+	QUICPktTypeShortP1P1:            1,
+	QUICPktTypeShortP1P2:            1,
+	QUICPktTypeShortP1P4:            1,
+	QUICPktTypeShortCidP0P1:         0,
+	QUICPktTypeShortCidP0P2:         0,
+	QUICPktTypeShortCidP0P4:         0,
+	QUICPktTypeShortCidP1P1:         1,
+	QUICPktTypeShortCidP1P2:         1,
+	QUICPktTypeShortCidP1P4:         1,
+	QUICPktTypeVersionNego:          -1,
+	QUICPktTypeClientInitial:        -1,
+	QUICPktTypeServerStatelessRetry: -1,
+	QUICPktTypeServerCleartext:      -1,
+	QUICPktTypeClientCleartext:      -1,
+	QUICPktTypeLongZeroRtt:          -1,
+	QUICPktTypeLongPhaseZero:        0,
+	QUICPktTypeLongPhaseOne:         1,
+	QUICPktTypeStatelessReset:       -1,
 }
 
 // A QUIC packet header or QUIC special packet
